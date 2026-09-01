@@ -1,0 +1,235 @@
+import { useEffect, useState, useCallback } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { apiFetch } from '@/lib/api';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import { ArrowLeft, Sparkles } from 'lucide-react';
+
+interface Application {
+  id: string;
+  company: string;
+  position: string;
+  jobDescription: string;
+  jobUrl: string | null;
+  status: string;
+  notes: string | null;
+}
+
+interface GeneratedDocument {
+  id: string;
+  docType: 'CV' | 'COVER_LETTER';
+  version: number;
+  content: string;
+  createdAt: string;
+}
+
+const STATUS_ITEMS = [
+  { value: 'APPLIED', label: 'Aplicado' },
+  { value: 'INTERVIEW', label: 'Entrevista' },
+  { value: 'OFFER', label: 'Oferta' },
+  { value: 'REJECTED', label: 'Rechazado' },
+  { value: 'WITHDRAWN', label: 'Retirado' },
+];
+
+export function ApplicationDetail() {
+  const { id } = useParams<{ id: string }>();
+  const [application, setApplication] = useState<Application | null>(null);
+  const [documents, setDocuments] = useState<GeneratedDocument[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [confirmDocType, setConfirmDocType] = useState<'CV' | 'COVER_LETTER' | null>(null);
+  const [generating, setGenerating] = useState(false);
+
+  const loadAll = useCallback(async () => {
+    if (!id) return;
+    setLoading(true);
+    const [app, docs] = await Promise.all([
+      apiFetch<Application>(`/applications/${id}`),
+      apiFetch<GeneratedDocument[]>(`/applications/${id}/documents`),
+    ]);
+    setApplication(app);
+    setDocuments(docs);
+    setLoading(false);
+  }, [id]);
+
+  useEffect(() => {
+    loadAll();
+  }, [loadAll]);
+
+  async function handleStatusChange(status: string | null) {
+  if (!id || !status) return;
+  await apiFetch(`/applications/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
+  setApplication((a) => (a ? { ...a, status } : a));
+  toast.success('Estado actualizado');
+}
+
+  async function handleGenerate() {
+    if (!id || !confirmDocType) return;
+    setGenerating(true);
+    try {
+      await apiFetch(`/applications/${id}/generate`, {
+        method: 'POST',
+        body: JSON.stringify({ docType: confirmDocType }),
+      });
+      toast.success(confirmDocType === 'CV' ? 'CV generado' : 'Carta generada');
+      const docs = await apiFetch<GeneratedDocument[]>(`/applications/${id}/documents`);
+      setDocuments(docs);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al generar el documento');
+    } finally {
+      setGenerating(false);
+      setConfirmDocType(null);
+    }
+  }
+
+  if (loading || !application) {
+    return <div className="p-6 text-muted-foreground">Cargando...</div>;
+  }
+
+  const cvDocs = documents.filter((d) => d.docType === 'CV').sort((a, b) => b.version - a.version);
+  const letterDocs = documents
+    .filter((d) => d.docType === 'COVER_LETTER')
+    .sort((a, b) => b.version - a.version);
+
+  return (
+    <div className="mx-auto max-w-3xl p-6">
+      <Link to="/" className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:underline">
+        <ArrowLeft className="size-4" /> Volver al tablero
+      </Link>
+
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="text-xl font-medium">{application.position}</h1>
+          <p className="text-muted-foreground">{application.company}</p>
+        </div>
+        <Select
+          items={STATUS_ITEMS}
+          value={application.status}
+          onValueChange={handleStatusChange}
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUS_ITEMS.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Descripcion de la oferta
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="whitespace-pre-wrap text-sm">{application.jobDescription}</p>
+          {application.jobUrl && (
+            <a>
+              href={application.jobUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-block text-sm underline"
+              Ver oferta original
+            </a>
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="mb-6 flex gap-2">
+        <Button onClick={() => setConfirmDocType('CV')}>
+          <Sparkles className="size-4" /> Generar CV
+        </Button>
+        <Button variant="outline" onClick={() => setConfirmDocType('COVER_LETTER')}>
+          <Sparkles className="size-4" /> Generar carta
+        </Button>
+      </div>
+
+      <Tabs defaultValue="cv">
+        <TabsList>
+          <TabsTrigger value="cv">CV ({cvDocs.length})</TabsTrigger>
+          <TabsTrigger value="letter">Carta ({letterDocs.length})</TabsTrigger>
+        </TabsList>
+        <TabsContent value="cv">
+          <DocumentVersions documents={cvDocs} emptyLabel="Todavia no has generado un CV para esta candidatura." />
+        </TabsContent>
+        <TabsContent value="letter">
+          <DocumentVersions documents={letterDocs} emptyLabel="Todavia no has generado una carta para esta candidatura." />
+        </TabsContent>
+      </Tabs>
+
+      <Dialog open={confirmDocType !== null} onOpenChange={(open) => !open && setConfirmDocType(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {confirmDocType === 'CV' ? 'Generar CV adaptado' : 'Generar carta de presentacion'}
+            </DialogTitle>
+            <DialogDescription>
+              Esto llama a Gemini para generar una nueva version a partir de tu perfil y esta
+              oferta. Las versiones anteriores no se pierden, se guardan en el historial.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDocType(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleGenerate} disabled={generating}>
+              {generating ? 'Generando...' : 'Generar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// Lista de versiones de un tipo de documento: la mas reciente se muestra
+// expandida por defecto, las anteriores en detalles colapsables — asi
+// puedes comparar el resultado de distintos prompts sin que la pagina
+// se vuelva interminable.
+function DocumentVersions({
+  documents,
+  emptyLabel,
+}: {
+  documents: GeneratedDocument[];
+  emptyLabel: string;
+}) {
+  if (documents.length === 0) {
+    return <p className="py-6 text-sm text-muted-foreground">{emptyLabel}</p>;
+  }
+
+  return (
+    <div className="space-y-3 py-3">
+      {documents.map((doc, i) => (
+        <details key={doc.id} open={i === 0} className="rounded-lg border">
+          <summary className="cursor-pointer px-4 py-2 text-sm font-medium">
+            Version {doc.version}
+            <span className="ml-2 font-normal text-muted-foreground">
+              {new Date(doc.createdAt).toLocaleString()}
+            </span>
+          </summary>
+          <div className="border-t px-4 py-3">
+            <p className="whitespace-pre-wrap text-sm">{doc.content}</p>
+          </div>
+        </details>
+      ))}
+    </div>
+  );
+}
