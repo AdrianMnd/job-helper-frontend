@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { ArrowLeft, Sparkles } from 'lucide-react';
+import { CvDocument } from '@/components/CvDocument';
 
 interface Application {
   id: string;
@@ -226,7 +227,11 @@ function DocumentVersions({
             </span>
           </summary>
           <div className="border-t px-4 py-3">
-            <p className="whitespace-pre-wrap text-sm">{doc.content}</p>
+            {doc.docType === 'CV' ? (
+              <CvDocument content={doc.content} />
+            ) : (
+              <p className="whitespace-pre-wrap text-sm">{doc.content}</p>
+            )}
           </div>
         </details>
       ))}
