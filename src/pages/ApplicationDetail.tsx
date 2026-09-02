@@ -16,6 +16,8 @@ import {
 import { toast } from 'sonner';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { CvDocument } from '@/components/CvDocument';
+import { StatusTimeline } from '@/components/StatusTimeline';
+import { STATUSES } from '@/lib/statuses';
 
 interface Application {
   id: string;
@@ -35,13 +37,11 @@ interface GeneratedDocument {
   createdAt: string;
 }
 
-const STATUS_ITEMS = [
-  { value: 'APPLIED', label: 'Aplicado' },
-  { value: 'INTERVIEW', label: 'Entrevista' },
-  { value: 'OFFER', label: 'Oferta' },
-  { value: 'REJECTED', label: 'Rechazado' },
-  { value: 'WITHDRAWN', label: 'Retirado' },
-];
+interface StatusHistoryEntry {
+  id: string;
+  status: string;
+  changedAt: string;
+}
 
 export function ApplicationDetail() {
   const { id } = useParams<{ id: string }>();
@@ -51,29 +51,35 @@ export function ApplicationDetail() {
   const [confirmDocType, setConfirmDocType] = useState<'CV' | 'COVER_LETTER' | null>(null);
   const [generating, setGenerating] = useState(false);
 
-  const loadAll = useCallback(async () => {
-    if (!id) return;
-    setLoading(true);
-    const [app, docs] = await Promise.all([
-      apiFetch<Application>(`/applications/${id}`),
-      apiFetch<GeneratedDocument[]>(`/applications/${id}/documents`),
-    ]);
-    setApplication(app);
-    setDocuments(docs);
-    setLoading(false);
-  }, [id]);
+  const [history, setHistory] = useState<StatusHistoryEntry[]>([]);
+
+const loadAll = useCallback(async () => {
+  if (!id) return;
+  setLoading(true);
+  const [app, docs, hist] = await Promise.all([
+    apiFetch<Application>(`/applications/${id}`),
+    apiFetch<GeneratedDocument[]>(`/applications/${id}/documents`),
+    apiFetch<StatusHistoryEntry[]>(`/applications/${id}/history`),
+  ]);
+  setApplication(app);
+  setDocuments(docs);
+  setHistory(hist);
+  setLoading(false);
+}, [id]);
 
   useEffect(() => {
     loadAll();
   }, [loadAll]);
 
-  async function handleStatusChange(status: string | null) {
+async function handleStatusChange(status: string | null) {
   if (!id || !status) return;
   await apiFetch(`/applications/${id}`, {
     method: 'PATCH',
     body: JSON.stringify({ status }),
   });
   setApplication((a) => (a ? { ...a, status } : a));
+  const hist = await apiFetch<StatusHistoryEntry[]>(`/applications/${id}/history`);
+  setHistory(hist);
   toast.success('Estado actualizado');
 }
 
@@ -117,7 +123,7 @@ export function ApplicationDetail() {
           <p className="text-muted-foreground">{application.company}</p>
         </div>
         <Select
-          items={STATUS_ITEMS}
+          items={STATUSES}
           value={application.status}
           onValueChange={handleStatusChange}
         >
@@ -125,7 +131,7 @@ export function ApplicationDetail() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {STATUS_ITEMS.map((item) => (
+            {STATUSES.map((item) => (
               <SelectItem key={item.value} value={item.value}>
                 {item.label}
               </SelectItem>
@@ -167,12 +173,16 @@ export function ApplicationDetail() {
         <TabsList>
           <TabsTrigger value="cv">CV ({cvDocs.length})</TabsTrigger>
           <TabsTrigger value="letter">Carta ({letterDocs.length})</TabsTrigger>
+          <TabsTrigger value="history">Historial</TabsTrigger>
         </TabsList>
         <TabsContent value="cv">
           <DocumentVersions documents={cvDocs} emptyLabel="Todavia no has generado un CV para esta candidatura." />
         </TabsContent>
         <TabsContent value="letter">
           <DocumentVersions documents={letterDocs} emptyLabel="Todavia no has generado una carta para esta candidatura." />
+        </TabsContent>
+        <TabsContent value="history">
+          <StatusTimeline history={history} />
         </TabsContent>
       </Tabs>
 
