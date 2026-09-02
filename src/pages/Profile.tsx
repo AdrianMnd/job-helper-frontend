@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { X, Plus } from 'lucide-react';
+import { COMMON_SKILLS } from '@/lib/commonSkills';
 
 interface Experience {
   role: string;
@@ -42,6 +43,15 @@ export function Profile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [skillInput, setSkillInput] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const suggestions = skillInput.trim()
+  ? COMMON_SKILLS.filter(
+      (s) =>
+        s.toLowerCase().includes(skillInput.trim().toLowerCase()) &&
+        !profile.skills.includes(s)
+    ).slice(0, 6)
+  : [];
 
   // Carga el perfil existente al montar. Si el usuario aun no tiene perfil
   // creado, el backend devuelve null y nos quedamos con el formulario vacio.
@@ -106,10 +116,15 @@ export function Profile() {
   }
 
   function addSkill() {
-    const value = skillInput.trim();
-    if (!value || profile.skills.includes(value)) return;
-    setProfile((p) => ({ ...p, skills: [...p.skills, value] }));
+    addSkillValue(skillInput);
+  }
+
+  function addSkillValue(value: string) {
+    const trimmed = value.trim();
+    if (!trimmed || profile.skills.includes(trimmed)) return;
+    setProfile((p) => ({ ...p, skills: [...p.skills, trimmed] }));
     setSkillInput('');
+    setShowSuggestions(false);
   }
 
   function removeSkill(skill: string) {
@@ -233,21 +248,46 @@ export function Profile() {
               </span>
             ))}
           </div>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Anadir skill y pulsar Enter"
-              value={skillInput}
-              onChange={(e) => setSkillInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addSkill();
-                }
-              }}
-            />
-            <Button type="button" variant="outline" onClick={addSkill}>
-              Anadir
-            </Button>
+          <div className="relative">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Anadir skill y pulsar Enter"
+                value={skillInput}
+                onChange={(e) => {
+                  setSkillInput(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addSkill();
+                  }
+                }}
+              />
+              <Button type="button" variant="outline" onClick={addSkill}>
+                Anadir
+              </Button>
+            </div>
+
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute z-10 mt-1 w-full rounded-md border bg-popover shadow-md">
+                {suggestions.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    // onMouseDown en vez de onClick: se dispara antes que el onBlur
+                    // del input, evitando que el desplegable se cierre antes de
+                    // registrar el click en la sugerencia.
+                    onMouseDown={() => addSkillValue(s)}
+                    className="block w-full px-3 py-1.5 text-left text-sm hover:bg-accent"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

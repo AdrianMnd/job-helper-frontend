@@ -4,6 +4,7 @@ import { ApplicationCard } from '@/components/ApplicationCard';
 import { NewApplicationDialog } from '@/components/NewApplicationDialog';
 import { apiFetch } from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
+import { STATUSES } from '@/lib/statuses';
 
 interface Application {
   id: string;
@@ -11,14 +12,6 @@ interface Application {
   position: string;
   status: string;
 }
-
-const STATUSES = [
-  { value: 'APPLIED', label: 'Aplicado', color: 'var(--chart-2)' },
-  { value: 'INTERVIEW', label: 'Entrevista', color: 'var(--chart-3)' },
-  { value: 'OFFER', label: 'Oferta', color: 'var(--chart-1)' },
-  { value: 'REJECTED', label: 'Rechazado', color: 'var(--chart-4)' },
-  { value: 'WITHDRAWN', label: 'Retirado', color: 'var(--chart-5)' },
-] as const;
 
 export function KanbanBoard() {
   const [applications, setApplications] = useState<Application[]>([]);
