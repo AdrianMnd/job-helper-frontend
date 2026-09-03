@@ -3,7 +3,7 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "app.vercel.jobHelper_adrianmnd.twa",
+      "package_name": "app.vercel.job_helper_adrianmnd.twa",
       "sha256_cert_fingerprints": ["70:BC:C5:2C:C6:F5:1E:15:8F:AF:31:51:83:86:E9:88:8E:2A:BF:D4:73:E1:03:97:F8:D0:BF:52:13:7E:54:DA"]
     }
   }
