@@ -19,6 +19,13 @@ import { CvDocument } from '@/components/CvDocument';
 import { StatusTimeline } from '@/components/StatusTimeline';
 import { STATUSES } from '@/lib/statuses';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Download } from 'lucide-react';
 
 
 interface Application {
@@ -43,6 +50,26 @@ interface StatusHistoryEntry {
   id: string;
   status: string;
   changedAt: string;
+}
+
+ async function downloadDocument(applicationId: string, documentId: string, format: 'docx' | 'pdf') {
+  const token = localStorage.getItem('token');
+  const res = await fetch(
+    `${import.meta.env.VITE_API_URL}/applications/${applicationId}/documents/${documentId}/export?format=${format}`,
+    { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+  );
+  if (!res.ok) throw new Error('Error al exportar el documento');
+
+  const blob = await res.blob();
+  const disposition = res.headers.get('Content-Disposition');
+  const filename = disposition?.match(/filename="(.+)"/)?.[1] ?? `documento.${format}`;
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 export function ApplicationDetail() {
@@ -190,10 +217,10 @@ async function handleStatusChange(status: string | null) {
           <TabsTrigger value="history">Historial</TabsTrigger>
         </TabsList>
         <TabsContent value="cv">
-          <DocumentVersions documents={cvDocs} emptyLabel="Todavia no has generado un CV para esta candidatura." />
+          <DocumentVersions applicationId={application.id} documents={cvDocs} emptyLabel="Todavia no has generado un CV para esta candidatura." />
         </TabsContent>
         <TabsContent value="letter">
-          <DocumentVersions documents={letterDocs} emptyLabel="Todavia no has generado una carta para esta candidatura." />
+          <DocumentVersions applicationId={application.id} documents={letterDocs} emptyLabel="Todavia no has generado una carta para esta candidatura." />
         </TabsContent>
         <TabsContent value="history">
           <StatusTimeline history={history} />
@@ -230,9 +257,11 @@ async function handleStatusChange(status: string | null) {
 // puedes comparar el resultado de distintos prompts sin que la pagina
 // se vuelva interminable.
 function DocumentVersions({
+  applicationId,
   documents,
   emptyLabel,
 }: {
+  applicationId: string;
   documents: GeneratedDocument[];
   emptyLabel: string;
 }) {
@@ -244,11 +273,28 @@ function DocumentVersions({
     <div className="space-y-3 py-3">
       {documents.map((doc, i) => (
         <details key={doc.id} open={i === 0} className="rounded-lg border">
-          <summary className="cursor-pointer px-4 py-2 text-sm font-medium">
-            Version {doc.version}
-            <span className="ml-2 font-normal text-muted-foreground">
-              {new Date(doc.createdAt).toLocaleString()}
+          <summary className="flex cursor-pointer items-center justify-between px-4 py-2 text-sm font-medium">
+            <span>
+              Version {doc.version}
+              <span className="ml-2 font-normal text-muted-foreground">
+                {new Date(doc.createdAt).toLocaleString()}
+              </span>
             </span>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={<Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()} />}
+              >
+                <Download className="size-4" /> Descargar
+              </DropdownMenuTrigger>
+              <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
+                <DropdownMenuItem onClick={() => downloadDocument(applicationId, doc.id, 'docx')}>
+                  Word (.docx)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => downloadDocument(applicationId, doc.id, 'pdf')}>
+                  PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </summary>
           <div className="border-t px-4 py-3">
             {doc.docType === 'CV' ? (
