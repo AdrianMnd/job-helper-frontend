@@ -1,5 +1,7 @@
+import { useDraggable } from '@dnd-kit/core';
 import { Card, CardContent } from '@/components/ui/card';
 import { getStatusMeta } from '@/lib/statuses';
+import { cn } from '@/lib/utils';
 
 interface Application {
   id: string;
@@ -8,17 +10,24 @@ interface Application {
   status: string;
 }
 
-interface ApplicationCardProps {
+// Contenido visual puro, sin logica de arrastre. Se reutiliza tanto en la
+// tarjeta normal como en el DragOverlay (la copia que sigue al cursor
+// durante el arrastre, renderizada fuera de cualquier columna para que
+// nunca quede recortada por los limites de su columna de origen).
+export function ApplicationCardVisual({
+  application,
+  dragging,
+}: {
   application: Application;
-  onClick?: () => void;
-}
-
-export function ApplicationCard({ application, onClick }: ApplicationCardProps) {
+  dragging?: boolean;
+}) {
   const meta = getStatusMeta(application.status);
   return (
     <Card
-      onClick={onClick}
-      className="cursor-pointer rounded-md border-border bg-secondary shadow-none transition-colors hover:border-primary/50"
+      className={cn(
+        'rounded-md border-border bg-secondary shadow-none transition-colors hover:border-primary/50',
+        dragging && 'shadow-lg ring-1 ring-primary'
+      )}
     >
       <CardContent className="p-3">
         <p className="font-display text-sm">{application.position}</p>
@@ -29,5 +38,26 @@ export function ApplicationCard({ application, onClick }: ApplicationCardProps) 
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+interface ApplicationCardProps {
+  application: Application;
+  onClick?: () => void;
+}
+
+export function ApplicationCard({ application, onClick }: ApplicationCardProps) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: application.id });
+
+  return (
+    <div
+      ref={setNodeRef}
+      onClick={onClick}
+      className={cn('cursor-grab active:cursor-grabbing', isDragging && 'opacity-30')}
+      {...listeners}
+      {...attributes}
+    >
+      <ApplicationCardVisual application={application} />
+    </div>
   );
 }
