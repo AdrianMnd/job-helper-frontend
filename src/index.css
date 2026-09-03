@@ -1,12 +1,12 @@
+@import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
-@import "tailwindcss";
-
-/* npx shadcn@latest init anadira aqui las variables de color (--background,
-   --foreground, --primary, etc.) necesarias para sus componentes. No lo
-   hacemos a mano: la CLI genera los valores correctos para el tema elegido. */
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-mono/500.css";
 @custom-variant dark (&:is(.dark *));
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -43,79 +43,50 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk Variable", ui-sans-serif, sans-serif;
+  --font-stamp: "IBM Plex Mono", ui-monospace, monospace;
 }
 
 @layer base {
-  .theme {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif
-  }
   :root {
-  --background: #f0e9d8;
-  --foreground: #23241f;
-  --card: #ffffff;
-  --card-foreground: #23241f;
-  --popover: #ffffff;
-  --popover-foreground: #23241f;
-  --primary: #1f4b43;
-  --primary-foreground: #faf9f6;
-  --secondary: #efede4;
-  --secondary-foreground: #23241f;
-  --muted: #e9e2d0;
-  --muted-foreground: #6b6a61;
-  --accent: #efede4;
-  --accent-foreground: #23241f;
-  --destructive: #a65d4e;
-  --border: #e4e1d8;
-  --input: #e4e1d8;
-  --ring: #1f4b43;
-  --chart-1: #1f4b43;
-  --chart-2: #5b7c99;
-  --chart-3: #c98a3e;
-  --chart-4: #a65d4e;
-  --chart-5: #9a968a;
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0)
-}
-  .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0)
+    --background: #1A1D24;
+    --foreground: #E7E9EC;
+    --card: #232730;
+    --card-foreground: #E7E9EC;
+    --popover: #232730;
+    --popover-foreground: #E7E9EC;
+    --primary: #2E6EFF;
+    --primary-foreground: #F5F8FF;
+    --secondary: #2E333D;
+    --secondary-foreground: #E7E9EC;
+    --muted: #20242C;
+    --muted-foreground: #9AA0AC;
+    --accent: #2D3340;
+    --accent-foreground: #E7E9EC;
+    --destructive: #E14F4F;
+    --border: #3E4552;
+    --input: #3E4552;
+    --ring: #2E6EFF;
+    --chart-1: #3DDC84; /* Oferta */
+    --chart-2: #5B6472; /* Aplicado */
+    --chart-3: #E8A93B; /* Entrevista */
+    --chart-4: #E14F4F; /* Rechazado */
+    --chart-5: #857A99; /* Retirado */
+    --radius: 0.5rem;
+    --sidebar: #14161B;
+    --sidebar-foreground: #E7E9EC;
+    --sidebar-primary: #2D3340;
+    --sidebar-primary-foreground: #E7E9EC;
+    --sidebar-accent: #2D3340;
+    --sidebar-accent-foreground: #E7E9EC;
+    --sidebar-border: #3A4150;
+    --sidebar-ring: #2E6EFF;
+  }
+
+  html {
+    font-size: 17px;
+    @apply font-sans;
   }
   * {
     @apply border-border outline-ring/50;
@@ -123,7 +94,7 @@
   body {
     @apply bg-background text-foreground;
   }
-  html {
-    @apply font-sans;
-  }
+  input, textarea, select {
+  background-color: var(--secondary);
+}
 }

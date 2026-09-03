@@ -1,0 +1,5 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="32" cy="32" r="30" fill="#14161A"/>
+  <circle cx="32" cy="32" r="30" fill="none" stroke="#2E6EFF" stroke-width="2"/>
+  <text x="32" y="41" font-family="'Space Grotesk', sans-serif" font-size="22" font-weight="600" fill="#2E6EFF" text-anchor="middle">JH</text>
+</svg>

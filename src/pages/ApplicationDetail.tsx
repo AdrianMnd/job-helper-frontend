@@ -18,6 +18,8 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 import { CvDocument } from '@/components/CvDocument';
 import { StatusTimeline } from '@/components/StatusTimeline';
 import { STATUSES } from '@/lib/statuses';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 interface Application {
   id: string;
@@ -103,8 +105,20 @@ async function handleStatusChange(status: string | null) {
   }
 
   if (loading || !application) {
-    return <div className="p-6 text-muted-foreground">Cargando...</div>;
-  }
+  return (
+    <div className="max-w-3xl p-8">
+      <Skeleton className="mb-6 h-4 w-32" />
+      <div className="mb-6 flex justify-between">
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-64" />
+          <Skeleton className="h-4 w-40" />
+        </div>
+        <Skeleton className="h-9 w-40" />
+      </div>
+      <Skeleton className="h-40 w-full rounded-sm" />
+    </div>
+  );
+}
 
   const cvDocs = documents.filter((d) => d.docType === 'CV').sort((a, b) => b.version - a.version);
   const letterDocs = documents
@@ -112,14 +126,14 @@ async function handleStatusChange(status: string | null) {
     .sort((a, b) => b.version - a.version);
 
   return (
-    <div className="mx-auto max-w-3xl p-6">
+    <div className="max-w-3xl p-8">
       <Link to="/" className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:underline">
         <ArrowLeft className="size-4" /> Volver al tablero
       </Link>
 
-      <div className="mb-6 flex items-start justify-between">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-xl font-medium">{application.position}</h1>
+          <h1 className="font-display text-2xl">{application.position}</h1>
           <p className="text-muted-foreground">{application.company}</p>
         </div>
         <Select
