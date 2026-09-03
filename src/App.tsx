@@ -8,6 +8,7 @@ import { KanbanBoard } from './pages/KanbanBoard';
 import { ApplicationDetail } from './pages/ApplicationDetail';
 import { Profile } from './pages/Profile';
 import { Toaster } from '@/components/ui/sonner';
+import { Metrics } from './pages/Metrics';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
               <Route path="/" element={<KanbanBoard />} />
               <Route path="/applications/:id" element={<ApplicationDetail />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/metrics" element={<Metrics />} />
             </Route>
           </Route>
         </Routes>

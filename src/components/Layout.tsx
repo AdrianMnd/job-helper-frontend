@@ -8,6 +8,7 @@ import { Menu, LogOut } from 'lucide-react';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Candidaturas' },
+  { to: '/metrics', label: 'Metricas' },
   { to: '/profile', label: 'Perfil' },
 ];
 
