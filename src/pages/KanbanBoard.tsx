@@ -18,6 +18,7 @@ import { STATUSES } from '@/lib/statuses';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useDoubleBackToExit } from '@/hooks/useDoubleBackToExit';
 
 interface Application {
   id: string;
@@ -44,6 +45,7 @@ function DroppableColumn({ status, children }: { status: string; children: React
 }
 
 export function KanbanBoard() {
+  useDoubleBackToExit(true);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeApp, setActiveApp] = useState<Application | null>(null);
