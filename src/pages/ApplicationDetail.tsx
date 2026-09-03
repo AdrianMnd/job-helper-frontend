@@ -27,6 +27,18 @@ import { STATUSES } from '@/lib/statuses';
 import { StatusTimeline } from '@/components/StatusTimeline';
 import { CvDocument } from '@/components/CvDocument';
 import { CvDiff } from '@/components/CvDiff';
+import { useNavigate } from 'react-router-dom';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog';
+import { Trash2 } from 'lucide-react';
 
 interface Application {
   id: string;
@@ -86,6 +98,8 @@ export function ApplicationDetail() {
   const [generating, setGenerating] = useState(false);
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [showDiff, setShowDiff] = useState(false);
+  const navigate = useNavigate();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const loadAll = useCallback(async () => {
     if (!id) return;
@@ -116,6 +130,17 @@ export function ApplicationDetail() {
     setHistory(hist);
     toast.success('Estado actualizado');
   }
+
+  async function handleDelete() {
+  if (!id) return;
+  try {
+    await apiFetch(`/applications/${id}`, { method: 'DELETE' });
+    toast.success('Candidatura eliminada');
+    navigate('/');
+  } catch (err) {
+    toast.error('Error al eliminar la candidatura');
+  }
+}
 
   async function handleGenerate() {
     if (!id || !confirmDocType) return;
@@ -192,6 +217,9 @@ export function ApplicationDetail() {
             ))}
           </SelectContent>
         </Select>
+        <Button variant="outline" size="icon" onClick={() => setShowDeleteConfirm(true)}>
+          <Trash2 className="size-4" />
+        </Button>
       </div>
 
       <Card className="mb-6 rounded-sm border-border shadow-none">
@@ -303,6 +331,23 @@ export function ApplicationDetail() {
           )}
         </DialogContent>
       </Dialog>
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Eliminar candidatura</AlertDialogTitle>
+          <AlertDialogDescription>
+            Esto borrara la candidatura junto con todos sus documentos generados y su historial.
+            Esta accion no se puede deshacer.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+            Eliminar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </div>
   );
 }
