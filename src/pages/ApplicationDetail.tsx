@@ -196,30 +196,32 @@ export function ApplicationDetail() {
         <ArrowLeft className="size-4" /> Volver al tablero
       </Link>
 
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start">
+        <div className="min-w-0 flex-1">
           <h1 className="font-display text-2xl">{application.position}</h1>
           <p className="text-muted-foreground">{application.company}</p>
         </div>
-        <Select
-          items={STATUSES}
-          value={application.status}
-          onValueChange={handleStatusChange}
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {STATUSES.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button variant="outline" size="icon" onClick={() => setShowDeleteConfirm(true)}>
-          <Trash2 className="size-4" />
-        </Button>
+        <div className="flex shrink-0 items-start gap-2">
+          <Select
+            items={STATUSES}
+            value={application.status}
+            onValueChange={handleStatusChange}
+          >
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUSES.map((item) => (
+                <SelectItem key={item.value} value={item.value}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="icon" onClick={() => setShowDeleteConfirm(true)}>
+            <Trash2 className="size-4" />
+          </Button>
+        </div>
       </div>
 
       <Card className="mb-6 rounded-sm border-border shadow-none">
