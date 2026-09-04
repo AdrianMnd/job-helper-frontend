@@ -9,6 +9,7 @@ import { ApplicationDetail } from './pages/ApplicationDetail';
 import { Profile } from './pages/Profile';
 import { Toaster } from '@/components/ui/sonner';
 import { Metrics } from './pages/Metrics';
+import { JobSearch } from './pages/JobSearch';
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
               <Route path="/applications/:id" element={<ApplicationDetail />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/metrics" element={<Metrics />} />
+              <Route path="/search" element={<JobSearch />} />
             </Route>
           </Route>
         </Routes>
