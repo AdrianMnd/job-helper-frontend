@@ -8,7 +8,11 @@ Aplicación web del asistente de búsqueda de empleo: tablero Kanban de candidat
 
 | Tablero Kanban | Detalle de candidatura |
 |---|---|
-| ![Tablero Kanban](./screenshots/kanban.png) | ![Detalle de candidatura](./screenshots/detalle-candidatura.png) |
+| ![Tablero Kanban](./screenshots/tablero.png) | ![Detalle de candidatura](./screenshots/detalle.png) |
+
+| Buscador de ofertas | Dashboard de métricas |
+|---|---|
+| ![Buscador de ofertas](./screenshots/buscador.png) | ![Métricas del proceso](./screenshots/metricas.png) |
 
 | Perfil |
 |---|
@@ -36,9 +40,9 @@ Tema oscuro con un único acento de color (azul eléctrico), reservado exclusiva
 - **Generación de CV y carta de presentación** adaptados a cada oferta con Gemini, con historial completo de versiones por candidatura.
 - **Comparador de versiones de CV**: selecciona dos versiones y visualiza las diferencias resaltadas campo a campo (texto añadido/eliminado).
 - **Exportación** de cualquier versión generada a Word (`.docx`) o PDF.
-- **Buscador de ofertas**: busca ofertas reales (API de Adzuna) y crea una candidatura directamente desde un resultado con un clic. La búsqueda y sus resultados persisten en `sessionStorage`, sobreviviendo a recargas de página dentro de la misma pestaña.
 - **Timeline de historial de estado** por candidatura.
 - **Dashboard de métricas**: embudo de conversión (Aplicado → Entrevista → Oferta) y tiempo medio en cada fase.
+- **Buscador de ofertas** (API de Adzuna) con traducción automática del término de búsqueda al español vía Gemini, y creación de candidatura con un clic desde cualquier resultado. La búsqueda persiste en `sessionStorage` entre recargas de página.
 - **Captura de ofertas desde imagen o PDF** (Gemini Vision) al crear una candidatura.
 - **Perfil** con sugerencias de skills autocompletadas (con navegación completa por teclado).
 - **PWA instalable**, con comportamiento de doble pulsación en "atrás" para salir cuando se ejecuta como app instalada (Android/escritorio).
@@ -67,7 +71,7 @@ Cada componente se copia como código fuente a `src/components/ui/` — no es un
 
 ```
 src/
-  pages/          Vistas de nivel de ruta: KanbanBoard, ApplicationDetail, Profile, Metrics, Login, Register
+  pages/          Vistas de nivel de ruta: KanbanBoard, ApplicationDetail, Profile, Metrics, JobSearch, Login, Register
   components/     Componentes de dominio (ApplicationCard, CvDocument, CvDiff, StatusTimeline, Layout...)
   components/ui/  Componentes de shadcn/ui
   context/        AuthContext (JWT en localStorage)
