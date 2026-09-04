@@ -8,6 +8,7 @@ import { Menu, LogOut } from 'lucide-react';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Candidaturas' },
+  { to: '/search', label: 'Buscar ofertas' },
   { to: '/metrics', label: 'Metricas' },
   { to: '/profile', label: 'Perfil' },
 ];
