@@ -36,6 +36,7 @@ Tema oscuro con un único acento de color (azul eléctrico), reservado exclusiva
 - **Generación de CV y carta de presentación** adaptados a cada oferta con Gemini, con historial completo de versiones por candidatura.
 - **Comparador de versiones de CV**: selecciona dos versiones y visualiza las diferencias resaltadas campo a campo (texto añadido/eliminado).
 - **Exportación** de cualquier versión generada a Word (`.docx`) o PDF.
+- **Buscador de ofertas**: busca ofertas reales (API de Adzuna) y crea una candidatura directamente desde un resultado con un clic. La búsqueda y sus resultados persisten en `sessionStorage`, sobreviviendo a recargas de página dentro de la misma pestaña.
 - **Timeline de historial de estado** por candidatura.
 - **Dashboard de métricas**: embudo de conversión (Aplicado → Entrevista → Oferta) y tiempo medio en cada fase.
 - **Captura de ofertas desde imagen o PDF** (Gemini Vision) al crear una candidatura.
