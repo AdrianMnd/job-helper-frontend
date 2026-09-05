@@ -32,16 +32,17 @@ Aplicación web del asistente de búsqueda de empleo: tablero Kanban de candidat
 
 ## Identidad visual
 
-Tema oscuro con un único acento de color (azul eléctrico), reservado exclusivamente para acciones principales y estados activos — el resto de la interfaz vive en una escala de grafito/gris. Los estados de cada candidatura (Aplicado, Entrevista, Oferta, Rechazado, Retirado) tienen su propio color categórico, consistente entre el Kanban, el detalle de la candidatura y el dashboard de métricas.
+Tema oscuro con un único acento de color (azul eléctrico), reservado exclusivamente para acciones principales y estados activos — el resto de la interfaz vive en una escala de grafito/gris. Los estados de cada candidatura (Guardada, Aplicado, Entrevista, Oferta, Rechazado, Retirado) tienen su propio color categórico, consistente entre el Kanban, el detalle de la candidatura y el dashboard de métricas.
 
 ## Funcionalidades
 
-- **Tablero Kanban** con columnas por estado, arrastrar y soltar para cambiar de fase, y grid fluido que adapta el número de columnas visibles al ancho de pantalla sin scroll horizontal.
+- **Tablero Kanban** con columnas por estado (Guardada → Aplicado → Entrevista → Oferta → Rechazado/Retirado), arrastrar y soltar para cambiar de fase, y grid fluido que adapta el número de columnas visibles al ancho de pantalla sin scroll horizontal.
 - **Generación de CV y carta de presentación** adaptados a cada oferta con Gemini, con historial completo de versiones por candidatura.
 - **Comparador de versiones de CV**: selecciona dos versiones y visualiza las diferencias resaltadas campo a campo (texto añadido/eliminado).
 - **Exportación** de cualquier versión generada a Word (`.docx`) o PDF.
 - **Timeline de historial de estado** por candidatura.
-- **Dashboard de métricas**: embudo de conversión (Aplicado → Entrevista → Oferta) y tiempo medio en cada fase.
+- **Dashboard de métricas**: embudo de conversión (Guardada → Aplicado → Entrevista → Oferta) y tiempo medio en cada fase.
+- **Flujo de aplicación**: un diálogo "Aplicar" reúne CV, carta de presentación y el enlace a la oferta original en un solo sitio (descarga en Word/PDF, copiar texto de la carta, abrir la oferta), sin enviar nada automáticamente por ti — cada portal es distinto y el envío final siempre lo haces tú. Al cerrarlo, si la candidatura seguía en su estado inicial, te pregunta si ya terminaste de aplicar y la mueve a "Aplicado".
 - **Buscador de ofertas** (API de Adzuna) con traducción automática del término de búsqueda al español vía Gemini, y creación de candidatura con un clic desde cualquier resultado. La búsqueda persiste en `sessionStorage` entre recargas de página.
 - **Captura de ofertas desde imagen o PDF** (Gemini Vision) al crear una candidatura.
 - **Perfil** con sugerencias de skills autocompletadas (con navegación completa por teclado).
