@@ -12,7 +12,7 @@ describe('getStatusMeta', () => {
     expect(meta.label).toBe('ALGO_NUEVO');
   });
 
-  it('STATUSES contiene los 5 estados esperados', () => {
-    expect(STATUSES).toHaveLength(5);
+  it('STATUSES contiene los 6 estados esperados', () => {
+    expect(STATUSES).toHaveLength(6);
   });
 });

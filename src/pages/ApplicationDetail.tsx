@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,21 +14,6 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
-import { ArrowLeft, Sparkles, Download, GitCompare } from 'lucide-react';
-import { STATUSES } from '@/lib/statuses';
-import { StatusTimeline } from '@/components/StatusTimeline';
-import { CvDocument } from '@/components/CvDocument';
-import { CvDiff } from '@/components/CvDiff';
-import { useNavigate } from 'react-router-dom';
-import {
   AlertDialog,
   AlertDialogContent,
   AlertDialogHeader,
@@ -38,7 +23,20 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from '@/components/ui/alert-dialog';
-import { Trash2 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
+import { ArrowLeft, Sparkles, Download, GitCompare, Trash2, Send, ExternalLink } from 'lucide-react';
+import { STATUSES } from '@/lib/statuses';
+import { StatusTimeline } from '@/components/StatusTimeline';
+import { CvDocument } from '@/components/CvDocument';
+import { CvDiff } from '@/components/CvDiff';
 
 interface Application {
   id: string;
@@ -90,6 +88,7 @@ async function downloadDocument(applicationId: string, documentId: string, forma
 
 export function ApplicationDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [application, setApplication] = useState<Application | null>(null);
   const [documents, setDocuments] = useState<GeneratedDocument[]>([]);
   const [history, setHistory] = useState<StatusHistoryEntry[]>([]);
@@ -98,8 +97,9 @@ export function ApplicationDetail() {
   const [generating, setGenerating] = useState(false);
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [showDiff, setShowDiff] = useState(false);
-  const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showApplyDialog, setShowApplyDialog] = useState(false);
+  const [showFinishedApplyingConfirm, setShowFinishedApplyingConfirm] = useState(false);
 
   const loadAll = useCallback(async () => {
     if (!id) return;
@@ -131,17 +131,6 @@ export function ApplicationDetail() {
     toast.success('Estado actualizado');
   }
 
-  async function handleDelete() {
-  if (!id) return;
-  try {
-    await apiFetch(`/applications/${id}`, { method: 'DELETE' });
-    toast.success('Candidatura eliminada');
-    navigate('/');
-  } catch (err) {
-    toast.error('Error al eliminar la candidatura');
-  }
-}
-
   async function handleGenerate() {
     if (!id || !confirmDocType) return;
     setGenerating(true);
@@ -161,12 +150,35 @@ export function ApplicationDetail() {
     }
   }
 
+  async function handleDelete() {
+    if (!id) return;
+    try {
+      await apiFetch(`/applications/${id}`, { method: 'DELETE' });
+      toast.success('Candidatura eliminada');
+      navigate('/');
+    } catch {
+      toast.error('Error al eliminar la candidatura');
+    }
+  }
+
   function toggleCompare(docId: string) {
     setCompareIds((prev) => {
       if (prev.includes(docId)) return prev.filter((x) => x !== docId);
       if (prev.length >= 2) return [prev[1], docId]; // mantiene solo las 2 ultimas selecciones
       return [...prev, docId];
     });
+  }
+
+  // Al cerrar el checklist de "Aplicar", si la candidatura seguia en el
+  // estado inicial "Guardada", preguntamos si ya se termino de aplicar
+  // en la web del ofertante - igual que hace LinkedIn tras usar su boton
+  // "Solicitar". No preguntamos si ya estaba en un estado posterior
+  // (Aplicado, Entrevista...), porque en ese caso no tendria sentido.
+  function handleApplyDialogChange(open: boolean) {
+    setShowApplyDialog(open);
+    if (!open && application?.status === 'SAVED') {
+      setShowFinishedApplyingConfirm(true);
+    }
   }
 
   if (loading || !application) {
@@ -189,6 +201,8 @@ export function ApplicationDetail() {
   const letterDocs = documents
     .filter((d) => d.docType === 'COVER_LETTER')
     .sort((a, b) => b.version - a.version);
+  const latestCv = cvDocs[0] as GeneratedDocument | undefined;
+  const latestLetter = letterDocs[0] as GeneratedDocument | undefined;
 
   return (
     <div className="max-w-3xl p-8">
@@ -245,12 +259,15 @@ export function ApplicationDetail() {
         </CardContent>
       </Card>
 
-      <div className="mb-6 flex gap-2">
+      <div className="mb-6 flex flex-wrap gap-2">
         <Button onClick={() => setConfirmDocType('CV')}>
           <Sparkles className="size-4" /> Generar CV
         </Button>
         <Button variant="outline" onClick={() => setConfirmDocType('COVER_LETTER')}>
           <Sparkles className="size-4" /> Generar carta
+        </Button>
+        <Button variant="outline" onClick={() => setShowApplyDialog(true)}>
+          <Send className="size-4" /> Aplicar
         </Button>
       </div>
 
@@ -333,23 +350,167 @@ export function ApplicationDetail() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Checklist de preparacion para postular. No envia nada por ti a
+          proposito: cada portal/ATS es distinto y automatizar el envio
+          seria fragil y en muchos casos incumpliria sus terminos de
+          servicio. En vez de eso, deja todo listo para que el ultimo
+          clic (enviar el formulario del portal) sea siempre tuyo. */}
+      <Dialog open={showApplyDialog} onOpenChange={handleApplyDialogChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Aplicar a esta oferta</DialogTitle>
+            <DialogDescription>
+              Prepara todo lo necesario y postula directamente en la web del ofertante.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2 py-2">
+            <ApplyStepRow
+              label="Descargar CV"
+              disabled={!latestCv}
+              hint={!latestCv ? 'Genera un CV primero' : undefined}
+            >
+              {latestCv && (
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => downloadDocument(application.id, latestCv.id, 'docx')}
+                  >
+                    Word
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => downloadDocument(application.id, latestCv.id, 'pdf')}
+                  >
+                    PDF
+                  </Button>
+                </div>
+              )}
+            </ApplyStepRow>
+
+            <ApplyStepRow
+              label="Descargar carta de presentacion"
+              disabled={!latestLetter}
+              hint={!latestLetter ? 'Genera una carta primero' : undefined}
+            >
+              {latestLetter && (
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => downloadDocument(application.id, latestLetter.id, 'docx')}
+                  >
+                    Word
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => downloadDocument(application.id, latestLetter.id, 'pdf')}
+                  >
+                    PDF
+                  </Button>
+                </div>
+              )}
+            </ApplyStepRow>
+
+            <ApplyStepRow label="Copiar texto de la carta" disabled={!latestLetter}>
+              {latestLetter && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(latestLetter.content);
+                    toast.success('Carta copiada al portapapeles');
+                  }}
+                >
+                  Copiar
+                </Button>
+              )}
+            </ApplyStepRow>
+
+            <ApplyStepRow
+              label="Abrir oferta original"
+              disabled={!application.jobUrl}
+              hint={!application.jobUrl ? 'Esta candidatura no tiene URL guardada' : undefined}
+            >
+              {application.jobUrl && (
+                <Button size="sm" onClick={() => window.open(application.jobUrl!, '_blank', 'noreferrer')}>
+                  Abrir <ExternalLink className="size-4" />
+                </Button>
+              )}
+            </ApplyStepRow>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Se dispara al cerrar el dialogo de "Aplicar" solo si la candidatura
+          seguia en el estado inicial "Guardada" - estilo LinkedIn tras usar
+          su boton "Solicitar". */}
+      <AlertDialog open={showFinishedApplyingConfirm} onOpenChange={setShowFinishedApplyingConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Has terminado de aplicar a esta oferta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Si ya has enviado tu candidatura en la web del ofertante, la marcamos como Aplicado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Aun no</AlertDialogCancel>
+            <AlertDialogAction onClick={async () => {
+              await handleStatusChange('APPLIED');
+              setShowFinishedApplyingConfirm(false);
+            }}>
+              Si, ya he aplicado
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Eliminar candidatura</AlertDialogTitle>
-          <AlertDialogDescription>
-            Esto borrara la candidatura junto con todos sus documentos generados y su historial.
-            Esta accion no se puede deshacer.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-            Eliminar
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar candidatura</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esto borrara la candidatura junto con todos sus documentos generados y su historial.
+              Esta accion no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+// Fila individual de la checklist de "Aplicar": una etiqueta con su pista
+// opcional (cuando la accion esta deshabilitada) y el/los botones de
+// accion a la derecha.
+function ApplyStepRow({
+  label,
+  disabled,
+  hint,
+  children,
+}: {
+  label: string;
+  disabled?: boolean;
+  hint?: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-sm border border-border p-3">
+      <div>
+        <p className={disabled ? 'text-sm text-muted-foreground' : 'text-sm'}>{label}</p>
+        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      </div>
+      {children}
     </div>
   );
 }

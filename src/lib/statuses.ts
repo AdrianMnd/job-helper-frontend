@@ -1,4 +1,5 @@
 export const STATUSES = [
+  { value: 'SAVED', label: 'Guardada', color: 'var(--muted-foreground)' },
   { value: 'APPLIED', label: 'Aplicado', color: 'var(--chart-2)' },
   { value: 'INTERVIEW', label: 'Entrevista', color: 'var(--chart-3)' },
   { value: 'OFFER', label: 'Oferta', color: 'var(--chart-1)' },
