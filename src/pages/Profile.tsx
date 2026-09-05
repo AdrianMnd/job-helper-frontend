@@ -199,6 +199,7 @@ export function Profile() {
                 value={profile.fullName}
                 onChange={(e) => setProfile((p) => ({ ...p, fullName: e.target.value }))}
                 required
+                spellCheck={false}
               />
             </div>
 
@@ -209,6 +210,7 @@ export function Profile() {
                 rows={5}
                 value={profile.summary}
                 onChange={(e) => setProfile((p) => ({ ...p, summary: e.target.value }))}
+                spellCheck={false}
               />
             </div>
 
@@ -306,22 +308,26 @@ export function Profile() {
                       placeholder="Puesto"
                       value={exp.role}
                       onChange={(e) => updateExperience(i, 'role', e.target.value)}
+                      spellCheck={false}
                     />
                     <Input
                       placeholder="Empresa"
                       value={exp.company}
                       onChange={(e) => updateExperience(i, 'company', e.target.value)}
+                      spellCheck={false}
                     />
                     <Input
                       placeholder="Periodo (ej. 2022 - actualidad)"
                       value={exp.period}
                       onChange={(e) => updateExperience(i, 'period', e.target.value)}
+                      spellCheck={false}
                     />
                     <Textarea
                       placeholder="Descripcion"
                       rows={2}
                       value={exp.description}
                       onChange={(e) => updateExperience(i, 'description', e.target.value)}
+                      spellCheck={false}
                     />
                   </CardContent>
                 </Card>

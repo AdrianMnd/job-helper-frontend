@@ -16,6 +16,7 @@ interface ProcessMetrics {
 // resoluble en el momento de pintar el SVG; si cambias la paleta alli,
 // actualiza tambien este mapa para mantener la coherencia visual.
 const STATUS_HEX: Record<string, string> = {
+  SAVED: '#8B909A',
   APPLIED: '#5B6472',
   INTERVIEW: '#E8A93B',
   OFFER: '#3DDC84',
@@ -34,7 +35,8 @@ export function Metrics() {
     return (
       <div className="p-8">
         <Skeleton className="mb-6 h-7 w-40" />
-        <div className="grid gap-5 sm:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-4">
+          <Skeleton className="h-24 w-full" />
           <Skeleton className="h-24 w-full" />
           <Skeleton className="h-24 w-full" />
           <Skeleton className="h-24 w-full" />
@@ -57,26 +59,40 @@ export function Metrics() {
       fill: STATUS_HEX[d.status],
     }));
 
-  const interviewRate =
+  // El embudo tiene ahora 4 fases: Guardada -> Aplicado -> Entrevista -> Oferta.
+  // Cada tasa de conversion compara una fase con la siguiente.
+  const appliedRate =
     metrics.funnel[0]?.count > 0
       ? Math.round((metrics.funnel[1].count / metrics.funnel[0].count) * 100)
       : 0;
-  const offerRate =
+  const interviewRate =
     metrics.funnel[1]?.count > 0
       ? Math.round((metrics.funnel[2].count / metrics.funnel[1].count) * 100)
+      : 0;
+  const offerRate =
+    metrics.funnel[2]?.count > 0
+      ? Math.round((metrics.funnel[3].count / metrics.funnel[2].count) * 100)
       : 0;
 
   return (
     <div className="p-8">
       <h1 className="mb-6 font-display text-2xl">Metricas del proceso</h1>
 
-      <div className="mb-8 grid gap-5 sm:grid-cols-3">
+      <div className="mb-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="rounded-md border-border bg-card shadow-none">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-normal text-muted-foreground">Total candidaturas</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="font-display text-3xl">{metrics.totalApplications}</p>
+          </CardContent>
+        </Card>
+        <Card className="rounded-md border-border bg-card shadow-none">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-normal text-muted-foreground">Guardada -&gt; Aplicado</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="font-display text-3xl">{appliedRate}%</p>
           </CardContent>
         </Card>
         <Card className="rounded-md border-border bg-card shadow-none">

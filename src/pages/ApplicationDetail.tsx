@@ -99,6 +99,7 @@ export function ApplicationDetail() {
   const [showDiff, setShowDiff] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showApplyDialog, setShowApplyDialog] = useState(false);
+  const [showFinishedApplyingConfirm, setShowFinishedApplyingConfirm] = useState(false);
 
   const loadAll = useCallback(async () => {
     if (!id) return;
@@ -166,6 +167,18 @@ export function ApplicationDetail() {
       if (prev.length >= 2) return [prev[1], docId]; // mantiene solo las 2 ultimas selecciones
       return [...prev, docId];
     });
+  }
+
+  // Al cerrar el checklist de "Aplicar", si la candidatura seguia en el
+  // estado inicial "Guardada", preguntamos si ya se termino de aplicar
+  // en la web del ofertante - igual que hace LinkedIn tras usar su boton
+  // "Solicitar". No preguntamos si ya estaba en un estado posterior
+  // (Aplicado, Entrevista...), porque en ese caso no tendria sentido.
+  function handleApplyDialogChange(open: boolean) {
+    setShowApplyDialog(open);
+    if (!open && application?.status === 'SAVED') {
+      setShowFinishedApplyingConfirm(true);
+    }
   }
 
   if (loading || !application) {
@@ -343,7 +356,7 @@ export function ApplicationDetail() {
           seria fragil y en muchos casos incumpliria sus terminos de
           servicio. En vez de eso, deja todo listo para que el ultimo
           clic (enviar el formulario del portal) sea siempre tuyo. */}
-      <Dialog open={showApplyDialog} onOpenChange={setShowApplyDialog}>
+      <Dialog open={showApplyDialog} onOpenChange={handleApplyDialogChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Aplicar a esta oferta</DialogTitle>
@@ -430,14 +443,31 @@ export function ApplicationDetail() {
               )}
             </ApplyStepRow>
           </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowApplyDialog(false)}>
-              Cerrar
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Se dispara al cerrar el dialogo de "Aplicar" solo si la candidatura
+          seguia en el estado inicial "Guardada" - estilo LinkedIn tras usar
+          su boton "Solicitar". */}
+      <AlertDialog open={showFinishedApplyingConfirm} onOpenChange={setShowFinishedApplyingConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Has terminado de aplicar a esta oferta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Si ya has enviado tu candidatura en la web del ofertante, la marcamos como Aplicado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Aun no</AlertDialogCancel>
+            <AlertDialogAction onClick={async () => {
+              await handleStatusChange('APPLIED');
+              setShowFinishedApplyingConfirm(false);
+            }}>
+              Si, ya he aplicado
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent>
