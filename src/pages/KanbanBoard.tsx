@@ -53,18 +53,29 @@ export function KanbanBoard() {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
-  const loadApplications = useCallback(() => {
-    const start = Date.now();
-    const MIN_LOADING_MS = 400;
+  const loadApplications = useCallback(async () => {
+  setLoading(true);
+  const maxAttempts = 5;
 
-    apiFetch<Application[]>('/applications')
-      .then(setApplications)
-      .finally(() => {
-        const elapsed = Date.now() - start;
-        const remaining = Math.max(0, MIN_LOADING_MS - elapsed);
-        setTimeout(() => setLoading(false), remaining);
-    });
-  }, []);
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const data = await apiFetch<Application[]>('/applications');
+      setApplications(data);
+      setLoading(false);
+      return;
+    } catch {
+      if (attempt === maxAttempts) {
+        toast.error('No se pudo conectar con el servidor. Recarga la pagina en unos segundos.');
+        setLoading(false);
+        return;
+      }
+      // Backoff creciente: da tiempo a que Render termine de arrancar el
+      // contenedor tras el reposo por inactividad, en vez de rendirse tras
+      // el primer fallo de conexion.
+      await new Promise((resolve) => setTimeout(resolve, attempt * 1500));
+    }
+  }
+}, []);
 
   useEffect(() => {
     loadApplications();
