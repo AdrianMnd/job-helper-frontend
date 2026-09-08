@@ -11,7 +11,7 @@ npm run test         # Unit tests (Vitest + Testing Library), single run
 npm run test:e2e     # Playwright e2e
 ```
 
-There is no lint script or ESLint config in this repo.
+There is no lint script or ESLint config in this repo. Formatting is Prettier (`.prettierrc`: single quotes, no trailing commas, printWidth 100), auto-applied on every Write/Edit/MultiEdit via the `.claude/hooks/format-on-save.cjs` PostToolUse hook. That hook reads the edited file's path from the JSON payload on stdin (`tool_input.file_path`) and calls Prettier's Node API in-process — never shell out to `npx prettier` from a hook command string using an env var for the path: Claude Code does not set one, and an unset/empty path passed to Prettier's CLI silently reformats the entire project instead of failing.
 
 Single test file / single test:
 
@@ -36,6 +36,7 @@ This is the frontend of a job-application-tracking assistant. It talks to a sepa
 **Status model**: `src/lib/statuses.ts` is the single source of truth for the six application states (`SAVED → APPLIED → INTERVIEW → OFFER`, plus `REJECTED`/`WITHDRAWN`) and their display label/color. `getStatusMeta(value)` is used everywhere a status needs to be rendered (Kanban columns, `StatusTimeline`, metrics) instead of hardcoding labels/colors per component, and falls back gracefully for a status value the frontend doesn't recognize yet.
 
 **Domain pages** (`src/pages/`), each owning its own data fetching via `apiFetch` and local `useState`/`useEffect` (no global state library / no React Query):
+
 - `KanbanBoard` — drag-and-drop board using `@dnd-kit/core`; columns are one per `STATUSES` entry, dropping a card `PATCH`es its status.
 - `ApplicationDetail` — the largest page; owns CV/cover-letter generation (calls the backend's Gemini-backed `/generate` endpoint), the version history, the diff comparison (via `CvDiff.tsx` using the `diff` package), Word/PDF export, the "Apply" dialog flow, and status history.
 - `JobSearch` — Adzuna-backed job search with Gemini query translation; search state persists to `sessionStorage` across reloads.
