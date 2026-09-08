@@ -54,9 +54,16 @@ export function KanbanBoard() {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   const loadApplications = useCallback(() => {
+    const start = Date.now();
+    const MIN_LOADING_MS = 400;
+
     apiFetch<Application[]>('/applications')
       .then(setApplications)
-      .finally(() => setLoading(false));
+      .finally(() => {
+        const elapsed = Date.now() - start;
+        const remaining = Math.max(0, MIN_LOADING_MS - elapsed);
+        setTimeout(() => setLoading(false), remaining);
+    });
   }, []);
 
   useEffect(() => {

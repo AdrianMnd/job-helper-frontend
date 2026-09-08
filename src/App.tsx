@@ -10,8 +10,17 @@ import { Profile } from './pages/Profile';
 import { Toaster } from '@/components/ui/sonner';
 import { Metrics } from './pages/Metrics';
 import { JobSearch } from './pages/JobSearch';
+import { useEffect } from 'react';
 
 export default function App() {
+  useEffect(() => {
+  const loader = document.getElementById('initial-loader');
+  if (loader) {
+    loader.style.transition = 'opacity 0.25s ease';
+    loader.style.opacity = '0';
+    setTimeout(() => loader.remove(), 250);
+  }
+}, []);
   return (
     <AuthProvider>
       <BrowserRouter
