@@ -11,6 +11,7 @@ import {
 } from '@dnd-kit/core';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { ApplicationCard, ApplicationCardVisual } from '@/components/ApplicationCard';
 import { NewApplicationDialog } from '@/components/NewApplicationDialog';
 import { apiFetch } from '@/lib/api';
@@ -48,34 +49,41 @@ export function KanbanBoard() {
   useDoubleBackToExit(true);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  // Distinto de "loading": indica que se agotaron los reintentos sin
+  // conseguir respuesta del backend (tipicamente un cold start de Render
+  // mas largo de lo habitual). Sin este estado propio, la UI no podia
+  // distinguir "no hay candidaturas de verdad" de "no se pudo conectar" -
+  // ambos casos renderizaban un tablero visualmente vacio e identico.
+  const [loadError, setLoadError] = useState(false);
   const [activeApp, setActiveApp] = useState<Application | null>(null);
   const navigate = useNavigate();
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   const loadApplications = useCallback(async () => {
-  setLoading(true);
-  const maxAttempts = 5;
+    setLoading(true);
+    setLoadError(false);
+    const maxAttempts = 5;
 
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      const data = await apiFetch<Application[]>('/applications');
-      setApplications(data);
-      setLoading(false);
-      return;
-    } catch {
-      if (attempt === maxAttempts) {
-        toast.error('No se pudo conectar con el servidor. Recarga la pagina en unos segundos.');
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const data = await apiFetch<Application[]>('/applications');
+        setApplications(data);
         setLoading(false);
         return;
+      } catch {
+        if (attempt === maxAttempts) {
+          setLoadError(true);
+          setLoading(false);
+          return;
+        }
+        // Backoff creciente: da tiempo a que Render termine de arrancar el
+        // contenedor tras el reposo por inactividad, en vez de rendirse tras
+        // el primer fallo de conexion.
+        await new Promise((resolve) => setTimeout(resolve, attempt * 1500));
       }
-      // Backoff creciente: da tiempo a que Render termine de arrancar el
-      // contenedor tras el reposo por inactividad, en vez de rendirse tras
-      // el primer fallo de conexion.
-      await new Promise((resolve) => setTimeout(resolve, attempt * 1500));
     }
-  }
-}, []);
+  }, []);
 
   useEffect(() => {
     loadApplications();
@@ -132,6 +140,14 @@ export function KanbanBoard() {
               <Skeleton className="h-16 w-full rounded-sm" />
             </div>
           ))}
+        </div>
+      ) : loadError ? (
+        <div className="flex flex-col items-center gap-3 rounded-sm border border-border bg-card p-10 text-center">
+          <p className="text-sm text-muted-foreground">
+            No se pudo conectar con el servidor. Puede que este arrancando tras un periodo de
+            inactividad.
+          </p>
+          <Button onClick={loadApplications}>Reintentar</Button>
         </div>
       ) : (
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
