@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent, type SubmitEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -9,15 +9,19 @@ export function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [registering, setRegistering] = useState(false);
 
   async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    setRegistering(true);
     try {
       await register(email, password);
       navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al registrarse');
+    } finally {
+      setRegistering(false);
     }
   }
 
@@ -42,7 +46,9 @@ export function Register() {
           required
         />
         {error && <p className="text-sm text-destructive">{error}</p>}
-        <Button type="submit" className="w-full">Crear cuenta</Button>
+        <Button type="submit" className="w-full" disabled={registering}>
+          {registering ? 'Creando cuenta...' : 'Crear cuenta'}
+        </Button>
       </form>
       <p className="mt-4 text-sm text-muted-foreground">
         Ya tienes cuenta? <Link to="/login" className="underline">Inicia sesion</Link>
