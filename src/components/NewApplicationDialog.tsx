@@ -96,7 +96,7 @@ async function handleImageUpload(e: ChangeEvent<HTMLInputElement>) {
       <DialogTrigger render={<Button size="sm" />}>
         <Plus className="size-4" /> Nueva candidatura
     </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[85vh] overflow-y-auto themed-scrollbar">
         <DialogHeader>
           <DialogTitle>Nueva candidatura</DialogTitle>
         </DialogHeader>

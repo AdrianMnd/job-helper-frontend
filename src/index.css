@@ -110,3 +110,24 @@ input:autofill {
   caret-color: var(--foreground);
   transition: background-color 5000s ease-in-out 0s;
 }
+
+/* Scrollbar acorde al tema oscuro - los navegadores no heredan colores
+   de Tailwind automaticamente para las barras de scroll nativas. */
+.themed-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--secondary);
+}
+.themed-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.themed-scrollbar::-webkit-scrollbar-track {
+  background: var(--secondary);
+}
+.themed-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 8px;
+}
+.themed-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
