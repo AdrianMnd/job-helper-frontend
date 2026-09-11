@@ -98,6 +98,7 @@ Desplegado en **Vercel**. `vercel.json` incluye la reescritura necesaria para qu
 - [job-helper-backend](https://github.com/AdrianMnd/job-helper-backend) — API (Node.js + Express + PostgreSQL)
 - [job-helper-extension](https://github.com/AdrianMnd/job-helper-extension) — Extensión de navegador
 - [job-helper-android](https://github.com/AdrianMnd/job-helper-android) — Versión Android (TWA)
+- [job-helper-mcp](https://github.com/AdrianMnd/job-helper-mcp) — Servidor MCP (herramientas para clientes de IA)
 
 ## Licencia
 
